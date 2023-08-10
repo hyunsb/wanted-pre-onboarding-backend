@@ -1,10 +1,7 @@
 package com.hyunsb.wanted.user;
 
 import com.hyunsb.wanted._core.error.ErrorMessage;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.validation.constraints.Email;
@@ -13,6 +10,9 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserRequest {
 
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     @ToString
     @Getter
     public static class SignupDTO {
