@@ -1,6 +1,6 @@
 package com.hyunsb.wanted.user;
 
-import com.hyunsb.wanted._core.error.exception.ErrorMessage;
+import com.hyunsb.wanted._core.error.ErrorMessage;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 

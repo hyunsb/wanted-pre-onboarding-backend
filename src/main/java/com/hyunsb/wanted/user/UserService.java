@@ -1,6 +1,6 @@
 package com.hyunsb.wanted.user;
 
-import com.hyunsb.wanted._core.error.exception.ErrorMessage;
+import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.error.exception.UserNotFoundException;
 import com.hyunsb.wanted._core.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
