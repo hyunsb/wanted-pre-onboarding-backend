@@ -1,10 +1,13 @@
 package com.hyunsb.wanted.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hyunsb.wanted._core.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -61,6 +64,41 @@ class UserControllerTest {
                             .with(SecurityMockMvcRequestPostProcessors.csrf())
                             .content(objectMapper.writeValueAsString(signupDTO)))
                     .andExpect(MockMvcResultMatchers.status().isCreated());
+        }
+    }
+
+    @Nested
+    @DisplayName("사용자 로그인 컨트롤러 단위 테스트")
+    class Signin {
+
+        @DisplayName("성공")
+        @Test
+        @WithMockUser
+        public void success_Test() throws Exception {
+            // Given
+            String uri = "/signin";
+            String email = "user@example.com";
+            String password = "12345678";
+            String token = "token";
+
+            UserRequest.SigninDTO signinDTO =
+                    UserRequest.SigninDTO.builder()
+                            .email(email)
+                            .password(password)
+                            .build();
+
+            Mockito.when(userService.signin(ArgumentMatchers.any(UserRequest.SigninDTO.class)))
+                    .thenReturn(token);
+
+            // When
+            // Then
+            mockMvc.perform(MockMvcRequestBuilders.post(uri)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .content(objectMapper.writeValueAsString(signinDTO)))
+                    .andExpect(MockMvcResultMatchers.status().isOk())
+                    .andExpect(MockMvcResultMatchers.header().exists(JwtProvider.HEADER))
+                    .andExpect(MockMvcResultMatchers.header().string(JwtProvider.HEADER, token));
         }
     }
 }
