@@ -3,6 +3,7 @@ package com.hyunsb.wanted.board;
 import com.hyunsb.wanted.user.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -10,6 +11,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
 @Table(name = "board_tb")
 @Entity
 public class Board {
