@@ -1,5 +1,6 @@
 package com.hyunsb.wanted.user;
 
+import com.hyunsb.wanted._core.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,5 +26,14 @@ public class UserController {
 
         userService.signup(signupDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<Object> signin(
+            @RequestBody @Valid UserRequest.SigninDTO signinDTO, Errors errors) {
+        log.info("POST /signin : " + signinDTO);
+
+        String jwt = userService.signin(signinDTO);
+        return ResponseEntity.ok().header(JwtProvider.HEADER, jwt).build();
     }
 }
