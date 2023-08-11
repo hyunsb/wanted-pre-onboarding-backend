@@ -11,4 +11,5 @@ public class ErrorMessage {
     public static final String TOKEN_VERIFICATION_FAILED = "올바른 토큰이 아닙니다.";
 
     public static final String INVALID_USER = "유효하지 않은 회원 정보입니다.";
+    public static final String EXCEEDED_SIZE = "게시글 수 요청의 최대 허용 범위를 초과했습니다.";
 }
