@@ -1,6 +1,6 @@
 package com.hyunsb.wanted.user;
 
-import com.hyunsb.wanted._core.error.ErrorMessage;
+import com.hyunsb.wanted._core.error.exception.ErrorMessage;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -29,5 +29,19 @@ public class UserRequest {
                     .password(passwordEncoder.encode(password))
                     .build();
         }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @ToString
+    @Getter
+    public static class SigninDTO {
+
+        @Email(regexp = ".*@.*", message = ErrorMessage.INVALID_EMAIL_FORMAT)
+        private String email;
+
+        @Size(min = 8, message = ErrorMessage.INVALID_PASSWORD_LENGTH)
+        private String password;
     }
 }

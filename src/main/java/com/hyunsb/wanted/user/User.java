@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.*;
 
@@ -24,4 +25,8 @@ public class User {
 
     @Column(nullable = false, length = 100)
     private String password;
+
+    public boolean isCorrectPassword(PasswordEncoder passwordEncoder, String rawPassword) {
+        return passwordEncoder.matches(rawPassword, password);
+    }
 }
