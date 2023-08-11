@@ -9,19 +9,18 @@ import com.hyunsb.wanted.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
 public class JwtProvider {
 
     public static final Long EXP = 1000L * 60 * 60;
     public static final String TOKEN_PREFIX = "Bearer ";
     public static final String HEADER = "Authorization";
+    public static final String REQUEST = "userId";
 
     private final Environment environment;
     private String key;
@@ -45,9 +44,13 @@ public class JwtProvider {
 
     public DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
         log.info("JWT verify: " + jwt);
-        String origin = jwt.replace(JwtProvider.TOKEN_PREFIX, "");
+        String origin = getOriginalJWT(jwt);
         return JWT.require(Algorithm.HMAC512(key))
                 .build()
                 .verify(origin);
+    }
+
+    private String getOriginalJWT(String jwt) {
+        return jwt.replace(JwtProvider.TOKEN_PREFIX, "");
     }
 }
