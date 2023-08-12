@@ -1,6 +1,7 @@
 package com.hyunsb.wanted.board;
 
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
+import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -13,7 +14,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,6 +76,52 @@ class BoardServiceTest {
             // Then
             Assertions.assertThrows(BoardSaveFailureException.class,
                     () -> boardService.save(saveDTO, userId));
+        }
+    }
+
+    @Nested
+    @DisplayName("게시글 목록 조회 서비스 단위 테스트")
+    class getAllList {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+
+            List<Board> mockList = List.of(
+                    Board.builder().id(1L).title("title").content("content").user(User.builder().id(1L).build()).build(),
+                    Board.builder().id(2L).title("title").content("content").user(User.builder().id(2L).build()).build(),
+                    Board.builder().id(3L).title("title").content("content").user(User.builder().id(3L).build()).build(),
+                    Board.builder().id(4L).title("title").content("content").user(User.builder().id(4L).build()).build(),
+                    Board.builder().id(5L).title("title").content("content").user(User.builder().id(5L).build()).build()
+            );
+
+            Pageable pageable = PageRequest.of(0, 3);
+            Page<Board> mockPage = new PageImpl<>(mockList, pageable, 2);
+
+            Mockito.when(boardRepository.findAll(pageable))
+                    .thenReturn(mockPage);
+
+            // When
+            Page<BoardResponse.ListDTO> actual = boardService.getAllList(pageable);
+
+            // Then
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals(3, actual.getSize()),
+                    () -> Assertions.assertEquals(2, actual.getTotalPages()),
+                    () -> Assertions.assertEquals(5, actual.getTotalElements())
+            );
+        }
+
+        @DisplayName("실패 - 페이징 사이즈 범위 초과")
+        @Test
+        void failure_Test_ExceededPagingSize() {
+            // Given
+            Pageable pageable = PageRequest.of(0, 101);
+
+            // When
+            // Then
+            Assertions.assertThrows(ExceededMaximumPageSizeException.class, () -> boardService.getAllList(pageable));
         }
     }
 }
