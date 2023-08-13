@@ -6,6 +6,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.util.FilterResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.stereotype.Component;
@@ -16,27 +17,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@Component
+@Slf4j
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
-    private final JwtProvider jwtProvider;
-
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
-        this.jwtProvider = jwtProvider;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
+        log.info("[JWT 인증 필터] 작동");
         String token = request.getHeader(JwtProvider.HEADER);
 
         if (token == null) {
+            log.info("[JWT 인증 필터] 토큰 없음");
             chain.doFilter(request, response);
             return;
         }
 
         try {
-            DecodedJWT decodedJWT = jwtProvider.verify(token);
+            log.info("[JWT 인증 필터] 토큰 확인 완료");
+            DecodedJWT decodedJWT = JwtProvider.verify(token);
             Long userId = getUserIdFromToken(decodedJWT);
 
             request.setAttribute(JwtProvider.REQUEST, userId);
