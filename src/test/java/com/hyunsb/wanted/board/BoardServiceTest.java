@@ -1,5 +1,6 @@
 package com.hyunsb.wanted.board;
 
+import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
@@ -122,6 +123,50 @@ class BoardServiceTest {
             // When
             // Then
             Assertions.assertThrows(ExceededMaximumPageSizeException.class, () -> boardService.getAllList(pageable));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 목록 조회 서비스 단위 테스트")
+    class getBoardBy {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Long boardId = 1L;
+            Board board = Board.builder()
+                    .id(1L)
+                    .title("title")
+                    .content("content")
+                    .user(new User())
+                    .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.of(board));
+
+            // When
+            BoardResponse.DetailDTO actual = boardService.getBoardBy(boardId);
+
+            // Then
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals(1L, actual.getId()),
+                    () -> Assertions.assertEquals("title", actual.getTitle()),
+                    () -> Assertions.assertEquals("content", actual.getContent())
+            );
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 아이디")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            Long boardId = 1L;
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.empty());
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () -> boardService.getBoardBy(boardId));
         }
     }
 }
