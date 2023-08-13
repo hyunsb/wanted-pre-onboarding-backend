@@ -1,5 +1,6 @@
 package com.hyunsb.wanted.board;
 
+import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
 import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
@@ -39,5 +40,13 @@ public class BoardService {
 
         return boardRepository.findAll(pageable)
                 .map(BoardResponse.ListDTO::from);
+    }
+
+    @Transactional(readOnly = true)
+    public BoardResponse.DetailDTO getBoardBy(Long boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(BoardNotFoundException::new);
+
+        return BoardResponse.DetailDTO.from(board);
     }
 }
