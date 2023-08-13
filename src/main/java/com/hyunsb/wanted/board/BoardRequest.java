@@ -24,4 +24,23 @@ public class BoardRequest {
                     .build();
         }
     }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    @Getter
+    @Builder
+    public static class updateDTO {
+
+        private String title;
+        private String content;
+
+        public Board toEntityWith(User user) {
+            return Board.builder()
+                    .title(title)
+                    .content(content)
+                    .user(user)
+                    .build();
+        }
+    }
 }

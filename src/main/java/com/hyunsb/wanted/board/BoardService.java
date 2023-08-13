@@ -3,6 +3,7 @@ package com.hyunsb.wanted.board;
 import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
 import com.hyunsb.wanted._core.error.ErrorMessage;
+import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
@@ -48,5 +50,18 @@ public class BoardService {
                 .orElseThrow(BoardNotFoundException::new);
 
         return BoardResponse.DetailDTO.from(board);
+    }
+
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    public void updateBy(Long boardId, BoardRequest.updateDTO updateDTO, Long userId) {
+        Board persistenceBoard = boardRepository.findById(boardId)
+                .orElseThrow(BoardNotFoundException::new);
+
+        if (!persistenceBoard.isCreatedBy(userId))
+            throw new BoardUpdateFailureException(ErrorMessage.INVALID_BOARD_CONSTRUCTOR);
+
+        String contentToUpdate = updateDTO.getContent();
+        String titleToUpdate = updateDTO.getTitle();
+        persistenceBoard.updateBy(contentToUpdate, titleToUpdate);
     }
 }
