@@ -4,7 +4,6 @@ import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.util.FilterResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -26,11 +25,6 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public JwtProvider jwtProvider(Environment environment) {
-        return new JwtProvider(environment);
     }
 
     @Bean
@@ -56,6 +50,7 @@ public class SecurityConfig {
                                 .antMatchers(HttpMethod.POST, "/board").authenticated()
                                 .antMatchers(HttpMethod.PUT, "/board/**").authenticated()
                                 .antMatchers(HttpMethod.DELETE, "/board/**").authenticated()
+                                .antMatchers("/board/**").permitAll()
                                 .anyRequest().permitAll());
 
         return http.build();

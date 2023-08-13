@@ -9,11 +9,13 @@ import com.hyunsb.wanted.user.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
 
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class JwtProvider {
 
@@ -22,8 +24,9 @@ public class JwtProvider {
     public static final String HEADER = "Authorization";
     public static final String REQUEST = "userId";
 
-    private final Environment environment;
     private static String key;
+
+    private final Environment environment;
 
     @PostConstruct
     private void init() {
@@ -34,8 +37,8 @@ public class JwtProvider {
         String jwt = JWT.create()
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
-                .withClaim("email", user.getEmail())
-                .withClaim("id", user.getId())
+                .withClaim("role", user.getRole())
+                .withClaim(REQUEST, user.getId())
                 .sign(Algorithm.HMAC512(key));
 
         log.info("JWT created: authentication object is creation");

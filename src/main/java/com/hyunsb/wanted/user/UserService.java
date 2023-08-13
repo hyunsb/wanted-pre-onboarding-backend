@@ -16,7 +16,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider;
 
     @Transactional
     public void signup(UserRequest.SignupDTO signupDTO) {
@@ -34,6 +33,6 @@ public class UserService {
         if (!user.isCorrectPassword(passwordEncoder, rawPassword))
             throw new UserNotFoundException(ErrorMessage.USER_NOT_FOUND);
 
-        return jwtProvider.create(user);
+        return JwtProvider.create(user);
     }
 }

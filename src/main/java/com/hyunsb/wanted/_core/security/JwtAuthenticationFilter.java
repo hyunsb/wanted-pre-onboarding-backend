@@ -6,8 +6,13 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.util.FilterResponse;
+import com.hyunsb.wanted.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Slf4j
+@Component
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
@@ -26,21 +32,33 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        log.info("[JWT 인증 필터] 작동");
         String token = request.getHeader(JwtProvider.HEADER);
+        log.info("JWT 필터 탐");
 
         if (token == null) {
-            log.info("[JWT 인증 필터] 토큰 없음");
+            log.info("JWT 토큰 없음");
             chain.doFilter(request, response);
             return;
         }
 
         try {
-            log.info("[JWT 인증 필터] 토큰 확인 완료");
             DecodedJWT decodedJWT = JwtProvider.verify(token);
             Long userId = getUserIdFromToken(decodedJWT);
+            String role = decodedJWT.getClaim("role").asString();
 
             request.setAttribute(JwtProvider.REQUEST, userId);
+
+            User user = User.builder().id(userId).role(role).build();
+
+            PrincipalUserDetail myUserDetails = new PrincipalUserDetail(user);
+            Authentication authentication =
+                    new UsernamePasswordAuthenticationToken(
+                            myUserDetails,
+                            myUserDetails.getPassword(),
+                            myUserDetails.getAuthorities()
+                    );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
             chain.doFilter(request, response);
 
         } catch (SignatureVerificationException sve) {
@@ -53,6 +71,6 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
     }
 
     private Long getUserIdFromToken(DecodedJWT decodedJWT) {
-        return decodedJWT.getClaim("id").asLong();
+        return decodedJWT.getClaim(JwtProvider.REQUEST).asLong();
     }
 }
