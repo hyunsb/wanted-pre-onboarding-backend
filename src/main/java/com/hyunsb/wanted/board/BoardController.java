@@ -47,4 +47,16 @@ public class BoardController {
         BoardResponse.DetailDTO boardDetail = boardService.getBoardBy(boardId);
         return ResponseEntity.ok(boardDetail);
     }
+
+    @PutMapping("/board/{boardId}")
+    public ResponseEntity<BoardResponse.DetailDTO> update(
+            @PathVariable Long boardId,
+            @RequestBody BoardRequest.updateDTO updateDTO,
+            HttpServletRequest request) {
+        log.info("PUT /board/" + boardId + ", " + updateDTO);
+        Long userId = (Long) request.getAttribute(JwtProvider.REQUEST);
+
+        boardService.updateBy(boardId, updateDTO, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
