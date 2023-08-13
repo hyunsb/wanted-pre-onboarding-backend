@@ -1,19 +1,25 @@
 package com.hyunsb.wanted.board;
 
+import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import org.junit.jupiter.api.*;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
+@Transactional
 @SpringBootTest
 public class BoardIntegrationTest {
 
@@ -33,10 +39,19 @@ public class BoardIntegrationTest {
                 .email("test@example.com")
                 .password("password")
                 .build();
+        User persistenceUser = userRepository.save(user);
 
-        userRepository.save(user);
+        List<Board> mockList = List.of(
+                Board.builder().title("title").content("content").user(persistenceUser).build(),
+                Board.builder().title("title").content("content").user(persistenceUser).build(),
+                Board.builder().title("title").content("content").user(persistenceUser).build(),
+                Board.builder().title("title").content("content").user(persistenceUser).build(),
+                Board.builder().title("title").content("content").user(persistenceUser).build()
+        );
+        boardRepository.saveAll(mockList);
     }
 
+    @Transactional
     @Nested
     @DisplayName("게시글 생성 통합 테스트")
     class Save {
@@ -45,8 +60,9 @@ public class BoardIntegrationTest {
         @Test
         void success_Test() {
             // Given
+            List<User> allUsers = userRepository.findAll();
+            Long userId = allUsers.get(0).getId();
 
-            Long userId = 1L;
             BoardRequest.SaveDTO saveDTO =
                     BoardRequest.SaveDTO.builder()
                             .title("testTitle")
@@ -83,16 +99,6 @@ public class BoardIntegrationTest {
         @Test
         void success_Test() {
             // Given
-            List<Board> mockList = List.of(
-                    Board.builder().title("title").content("content").user(User.builder().id(1L).build()).build(),
-                    Board.builder().title("title").content("content").user(User.builder().id(1L).build()).build(),
-                    Board.builder().title("title").content("content").user(User.builder().id(1L).build()).build(),
-                    Board.builder().title("title").content("content").user(User.builder().id(1L).build()).build(),
-                    Board.builder().title("title").content("content").user(User.builder().id(1L).build()).build()
-            );
-
-            boardRepository.saveAll(mockList);
-
             Pageable pageable = PageRequest.of(0, 3);
 
             // When
@@ -116,6 +122,41 @@ public class BoardIntegrationTest {
             // Then
             Assertions.assertThrows(ExceededMaximumPageSizeException.class, () ->
                     boardService.getAllList(pageable));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 목록 조회 통합 테스트")
+    class getBoardBy {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Long boardId = 1L;
+
+            // When
+            BoardResponse.DetailDTO actual = boardService.getBoardBy(boardId);
+
+            // Then
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals(1L, actual.getId()),
+                    () -> Assertions.assertEquals("title", actual.getTitle()),
+                    () -> Assertions.assertEquals("content", actual.getContent())
+            );
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 아이디")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            boardRepository.deleteAll();
+            Long boardId = 1L;
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () ->
+                    boardService.getBoardBy(boardId));
         }
     }
 }

@@ -23,7 +23,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -36,9 +35,6 @@ import java.util.List;
 class BoardControllerTest {
 
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private WebApplicationContext webApplicationContext;
 
     @Autowired
     private MockMvc mockMvc;
@@ -104,6 +100,36 @@ class BoardControllerTest {
 
             Mockito.when(boardService.getAllList(ArgumentMatchers.any(Pageable.class)))
                     .thenReturn(mockPage);
+
+            // When
+            // Then
+            mockMvc.perform(MockMvcRequestBuilders.get(uri)
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isOk());
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 목록 조회 컨트롤러 단위 테스트")
+    class getBoardBy {
+
+        @DisplayName("성공")
+        @Test
+        @WithMockUser
+        void success_Test() throws Exception {
+            // Given
+            String uri = "/board/" + 1;
+
+            BoardResponse.DetailDTO detailDTO =
+                    BoardResponse.DetailDTO.builder()
+                            .id(1L)
+                            .title("title")
+                            .content("content")
+                            .userId(1L)
+                            .build();
+
+            Mockito.when(boardService.getBoardBy(ArgumentMatchers.anyLong()))
+                    .thenReturn(detailDTO);
 
             // When
             // Then
