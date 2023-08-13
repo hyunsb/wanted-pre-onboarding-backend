@@ -26,4 +26,28 @@ public class BoardResponse {
                     .build();
         }
     }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @ToString
+    @Getter
+    @Builder
+    public static class DetailDTO {
+
+        private Long id;
+        private String title;
+        private String content;
+        private Long userId;
+        private String userEmail;
+
+        public static DetailDTO from(Board board) {
+            return DetailDTO.builder()
+                    .id(board.getId())
+                    .title(board.getTitle())
+                    .content(board.getContent())
+                    .userId(board.getUser().getId())
+                    .userEmail(board.getUser().getEmail())
+                    .build();
+        }
+    }
 }
