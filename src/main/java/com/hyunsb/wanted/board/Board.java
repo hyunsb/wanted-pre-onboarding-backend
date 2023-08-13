@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,4 +31,13 @@ public class Board {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    public boolean isCreatedBy(Long userId) {
+        return Objects.equals(user.getId(), userId);
+    }
+
+    public void updateBy(String contentToUpdate, String titleToUpdate) {
+        title = titleToUpdate;
+        content = contentToUpdate;
+    }
 }
