@@ -23,14 +23,14 @@ public class JwtProvider {
     public static final String REQUEST = "userId";
 
     private final Environment environment;
-    private String key;
+    private static String key;
 
     @PostConstruct
     private void init() {
         key = environment.getProperty("JWT_SECRET_KEY");
     }
 
-    public String create(User user) {
+    public static String create(User user) {
         String jwt = JWT.create()
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
@@ -42,7 +42,7 @@ public class JwtProvider {
         return TOKEN_PREFIX + jwt;
     }
 
-    public DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
+    public static DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
         log.info("JWT verify: " + jwt);
         String origin = getOriginalJWT(jwt);
         return JWT.require(Algorithm.HMAC512(key))
@@ -50,7 +50,7 @@ public class JwtProvider {
                 .verify(origin);
     }
 
-    private String getOriginalJWT(String jwt) {
+    private static String getOriginalJWT(String jwt) {
         return jwt.replace(JwtProvider.TOKEN_PREFIX, "");
     }
 }

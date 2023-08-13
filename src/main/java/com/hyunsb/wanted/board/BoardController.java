@@ -1,6 +1,5 @@
 package com.hyunsb.wanted.board;
 
-import com.hyunsb.wanted._core.error.exception.UnauthorizedException;
 import com.hyunsb.wanted._core.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +24,7 @@ public class BoardController {
             @RequestBody BoardRequest.SaveDTO saveDTO,
             HttpServletRequest request) {
         log.info("POST /board : " + saveDTO);
-
         Long userId = (Long) request.getAttribute(JwtProvider.REQUEST);
-        if (userId == null) throw new UnauthorizedException();
 
         boardService.save(saveDTO, userId);
 
