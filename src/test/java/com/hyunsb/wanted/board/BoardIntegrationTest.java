@@ -1,9 +1,6 @@
 package com.hyunsb.wanted.board;
 
-import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
-import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
-import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
-import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
+import com.hyunsb.wanted._core.error.exception.*;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import org.junit.jupiter.api.*;
@@ -15,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Transactional
 @SpringBootTest
@@ -162,7 +160,7 @@ public class BoardIntegrationTest {
     }
 
     @Nested
-    @DisplayName("특정 게시글 수정 서비스 단위 테스트")
+    @DisplayName("특정 게시글 수정 통합 테스트")
     class update {
 
         @DisplayName("성공")
@@ -226,6 +224,59 @@ public class BoardIntegrationTest {
             // Then
             Assertions.assertThrows(BoardUpdateFailureException.class, () ->
                     boardService.updateBy(boardId, updateDTO, userId));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 삭제 통합 테스트")
+    class delete {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Board board = boardRepository.findAll().get(0);
+
+            Long userId = board.getUser().getId();
+            Long boardId = board.getId();
+
+            // When
+            boardService.deleteBy(boardId, userId);
+            Optional<Board> boardOptional = boardRepository.findById(boardId);
+
+            // Then
+            Assertions.assertFalse(boardOptional.isPresent());
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 번호")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            List<Board> boardList = boardRepository.findAll();
+            Board board = boardList.get(boardList.size() - 1);
+
+            Long userId = board.getUser().getId();
+            Long boardId = board.getId() + 1;
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () ->
+                    boardService.deleteBy(boardId, userId));
+        }
+
+        @DisplayName("실패 - 게시글 작성자와 삭제 요청자가 일치하지 않음")
+        @Test
+        void failure_Test_InvalidUserId() {
+            // Given
+            Board board = boardRepository.findAll().get(0);
+
+            Long userId = board.getUser().getId() + 1;
+            Long boardId = board.getId();
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardDeleteFailureException.class, () ->
+                    boardService.deleteBy(boardId, userId));
         }
     }
 }
