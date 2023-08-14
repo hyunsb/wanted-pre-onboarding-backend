@@ -59,4 +59,15 @@ public class BoardController {
         boardService.updateBy(boardId, updateDTO, userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @DeleteMapping("/board/{boardId}")
+    public ResponseEntity<Object> delete(
+            @PathVariable Long boardId,
+            HttpServletRequest request) {
+        log.info("DELETE /board/" + boardId);
+        Long userId = (Long) request.getAttribute(JwtProvider.REQUEST);
+
+        boardService.deleteBy(boardId, userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
 }
