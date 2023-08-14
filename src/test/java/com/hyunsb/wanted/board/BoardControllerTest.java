@@ -110,7 +110,7 @@ class BoardControllerTest {
     }
 
     @Nested
-    @DisplayName("특정 게시글 목록 조회 컨트롤러 단위 테스트")
+    @DisplayName("특정 게시글 조회 컨트롤러 단위 테스트")
     class getBoardBy {
 
         @DisplayName("성공")
@@ -136,6 +136,33 @@ class BoardControllerTest {
             mockMvc.perform(MockMvcRequestBuilders.get(uri)
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(MockMvcResultMatchers.status().isOk());
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 수정 컨트롤러 단위 테스트")
+    class update {
+
+        @DisplayName("성공")
+        @Test
+        @WithMockUser
+        void success_Test() throws Exception {
+            // Given
+            String uri = "/board/" + 1;
+
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("title")
+                            .content("content")
+                            .build();
+
+            // When
+            // Then
+            mockMvc.perform(MockMvcRequestBuilders.put(uri)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(updateDTO)))
+                    .andExpect(MockMvcResultMatchers.status().isNoContent());
         }
     }
 }

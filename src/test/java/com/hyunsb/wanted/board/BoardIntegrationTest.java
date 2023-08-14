@@ -2,22 +2,19 @@ package com.hyunsb.wanted.board;
 
 import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
+import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import org.junit.jupiter.api.*;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Transactional
 @SpringBootTest
@@ -34,6 +31,9 @@ public class BoardIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        userRepository.deleteAll();
+        boardRepository.deleteAll();
+
         User user = User.builder()
                 .id(1L)
                 .email("test@example.com")
@@ -42,11 +42,11 @@ public class BoardIntegrationTest {
         User persistenceUser = userRepository.save(user);
 
         List<Board> mockList = List.of(
-                Board.builder().title("title").content("content").user(persistenceUser).build(),
-                Board.builder().title("title").content("content").user(persistenceUser).build(),
-                Board.builder().title("title").content("content").user(persistenceUser).build(),
-                Board.builder().title("title").content("content").user(persistenceUser).build(),
-                Board.builder().title("title").content("content").user(persistenceUser).build()
+                Board.builder().id(1L).title("title").content("content").user(persistenceUser).build(),
+                Board.builder().id(2L).title("title").content("content").user(persistenceUser).build(),
+                Board.builder().id(3L).title("title").content("content").user(persistenceUser).build(),
+                Board.builder().id(4L).title("title").content("content").user(persistenceUser).build(),
+                Board.builder().id(5L).title("title").content("content").user(persistenceUser).build()
         );
         boardRepository.saveAll(mockList);
     }
@@ -126,21 +126,22 @@ public class BoardIntegrationTest {
     }
 
     @Nested
-    @DisplayName("특정 게시글 목록 조회 통합 테스트")
+    @DisplayName("특정 게시글 조회 통합 테스트")
     class getBoardBy {
 
         @DisplayName("성공")
         @Test
         void success_Test() {
             // Given
-            Long boardId = 1L;
+            Board board = boardRepository.findAll().get(0);
+            Long boardId = board.getId();
 
             // When
             BoardResponse.DetailDTO actual = boardService.getBoardBy(boardId);
 
             // Then
             Assertions.assertAll(
-                    () -> Assertions.assertEquals(1L, actual.getId()),
+                    () -> Assertions.assertEquals(boardId, actual.getId()),
                     () -> Assertions.assertEquals("title", actual.getTitle()),
                     () -> Assertions.assertEquals("content", actual.getContent())
             );
@@ -157,6 +158,74 @@ public class BoardIntegrationTest {
             // Then
             Assertions.assertThrows(BoardNotFoundException.class, () ->
                     boardService.getBoardBy(boardId));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 수정 서비스 단위 테스트")
+    class update {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Board board = boardRepository.findAll().get(0);
+
+            Long userId = board.getUser().getId();
+            Long boardId = board.getId();
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            // When
+            boardService.updateBy(boardId, updateDTO, userId);
+            Board actual = boardRepository.findById(boardId).get();
+
+            // Then
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("changeTitle", actual.getTitle()),
+                    () -> Assertions.assertEquals("changeContent", actual.getContent())
+            );
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 번호")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 200L;
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () ->
+                    boardService.updateBy(boardId, updateDTO, userId));
+        }
+
+        @DisplayName("실패 - 게시글 작성자와 수정 요청자가 일치하지 않음")
+        @Test
+        void failure_Test_InvalidUserId() {
+            // Given
+            Board board = boardRepository.findAll().get(0);
+
+            Long userId = board.getUser().getId() + 1;
+            Long boardId = board.getId();
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardUpdateFailureException.class, () ->
+                    boardService.updateBy(boardId, updateDTO, userId));
         }
     }
 }
