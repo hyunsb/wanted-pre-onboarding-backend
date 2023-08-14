@@ -165,4 +165,24 @@ class BoardControllerTest {
                     .andExpect(MockMvcResultMatchers.status().isNoContent());
         }
     }
+
+    @Nested
+    @DisplayName("특정 게시글 삭제 컨트롤러 단위 테스트")
+    class delete {
+
+        @DisplayName("성공")
+        @Test
+        @WithMockUser
+        void success_Test() throws Exception {
+            // Given
+            String uri = "/board/" + 1;
+
+            // When
+            // Then
+            mockMvc.perform(MockMvcRequestBuilders.delete(uri)
+                            .with(SecurityMockMvcRequestPostProcessors.csrf())
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(MockMvcResultMatchers.status().isNoContent());
+        }
+    }
 }

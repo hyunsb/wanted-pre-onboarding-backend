@@ -1,9 +1,6 @@
 package com.hyunsb.wanted.board;
 
-import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
-import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
-import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
-import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
+import com.hyunsb.wanted._core.error.exception.*;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -262,6 +259,80 @@ class BoardServiceTest {
             // Then
             Assertions.assertThrows(BoardUpdateFailureException.class, () ->
                     boardService.updateBy(boardId, updateDTO, userId));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 삭제 서비스 단위 테스트")
+    class delete {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+
+            User user = User.builder()
+                    .id(1L)
+                    .build();
+
+            Board board = Board.builder()
+                    .id(1L)
+                    .title("title")
+                    .content("content")
+                    .user(user)
+                    .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.of(board));
+
+            // When
+            // Then
+            boardService.deleteBy(boardId, userId);
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 번호")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.empty());
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () ->
+                    boardService.deleteBy(boardId, userId));
+        }
+
+        @DisplayName("실패 - 게시글 작성자와 삭제 요청자가 일치하지 않음")
+        @Test
+        void failure_Test_InvalidUserId() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+
+            User user = User.builder()
+                    .id(2L)
+                    .build();
+
+            Board board = Board.builder()
+                    .id(1L)
+                    .title("title")
+                    .content("content")
+                    .user(user)
+                    .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.of(board));
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardDeleteFailureException.class, () ->
+                    boardService.deleteBy(boardId, userId));
         }
     }
 }
