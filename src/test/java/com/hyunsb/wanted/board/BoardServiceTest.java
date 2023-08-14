@@ -2,6 +2,7 @@ package com.hyunsb.wanted.board;
 
 import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
 import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
+import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
 import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
@@ -127,7 +128,7 @@ class BoardServiceTest {
     }
 
     @Nested
-    @DisplayName("특정 게시글 목록 조회 서비스 단위 테스트")
+    @DisplayName("특정 게시글 조회 서비스 단위 테스트")
     class getBoardBy {
 
         @DisplayName("성공")
@@ -167,6 +168,100 @@ class BoardServiceTest {
             // When
             // Then
             Assertions.assertThrows(BoardNotFoundException.class, () -> boardService.getBoardBy(boardId));
+        }
+    }
+
+    @Nested
+    @DisplayName("특정 게시글 수정 서비스 단위 테스트")
+    class update {
+
+        @DisplayName("성공")
+        @Test
+        void success_Test() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            User user = User.builder()
+                    .id(1L)
+                    .build();
+
+            Board board = Board.builder()
+                    .id(1L)
+                    .title("title")
+                    .content("content")
+                    .user(user)
+                    .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.of(board));
+
+            // When
+            boardService.updateBy(boardId, updateDTO, userId);
+
+            // Then
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("changeTitle", board.getTitle()),
+                    () -> Assertions.assertEquals("changeContent", board.getContent())
+            );
+        }
+
+        @DisplayName("실패 - 유효하지 않은 게시글 번호")
+        @Test
+        void failure_Test_InvalidBoardId() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.empty());
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardNotFoundException.class, () ->
+                    boardService.updateBy(boardId, updateDTO, userId));
+        }
+
+        @DisplayName("실패 - 게시글 작성자와 수정 요청자가 일치하지 않음")
+        @Test
+        void failure_Test_InvalidUserId() {
+            // Given
+            Long userId = 1L;
+            Long boardId = 1L;
+            BoardRequest.updateDTO updateDTO =
+                    BoardRequest.updateDTO.builder()
+                            .title("changeTitle")
+                            .content("changeContent")
+                            .build();
+
+            User user = User.builder()
+                    .id(2L)
+                    .build();
+
+            Board board = Board.builder()
+                    .id(1L)
+                    .title("title")
+                    .content("content")
+                    .user(user)
+                    .build();
+
+            Mockito.when(boardRepository.findById(ArgumentMatchers.anyLong()))
+                    .thenReturn(Optional.of(board));
+
+            // When
+            // Then
+            Assertions.assertThrows(BoardUpdateFailureException.class, () ->
+                    boardService.updateBy(boardId, updateDTO, userId));
         }
     }
 }
