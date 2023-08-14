@@ -1,10 +1,7 @@
 package com.hyunsb.wanted.board;
 
-import com.hyunsb.wanted._core.error.exception.BoardNotFoundException;
-import com.hyunsb.wanted._core.error.exception.BoardSaveFailureException;
+import com.hyunsb.wanted._core.error.exception.*;
 import com.hyunsb.wanted._core.error.ErrorMessage;
-import com.hyunsb.wanted._core.error.exception.BoardUpdateFailureException;
-import com.hyunsb.wanted._core.error.exception.ExceededMaximumPageSizeException;
 import com.hyunsb.wanted.user.User;
 import com.hyunsb.wanted.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -46,22 +43,31 @@ public class BoardService {
 
     @Transactional(readOnly = true)
     public BoardResponse.DetailDTO getBoardBy(Long boardId) {
-        Board board = boardRepository.findById(boardId)
-                .orElseThrow(BoardNotFoundException::new);
+        Board board = getBoardById(boardId);
 
         return BoardResponse.DetailDTO.from(board);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     public void updateBy(Long boardId, BoardRequest.updateDTO updateDTO, Long userId) {
-        Board persistenceBoard = boardRepository.findById(boardId)
-                .orElseThrow(BoardNotFoundException::new);
-
-        if (!persistenceBoard.isCreatedBy(userId))
+        Board board = getBoardById(boardId);
+        if (!board.isCreatedBy(userId))
             throw new BoardUpdateFailureException(ErrorMessage.INVALID_BOARD_CONSTRUCTOR);
 
-        String contentToUpdate = updateDTO.getContent();
-        String titleToUpdate = updateDTO.getTitle();
-        persistenceBoard.updateBy(contentToUpdate, titleToUpdate);
+        board.updateBy(updateDTO.getContent(), updateDTO.getTitle());
+    }
+
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    public void deleteBy(Long boardId, Long userId) {
+        Board board = getBoardById(boardId);
+        if (!board.isCreatedBy(userId))
+            throw new BoardDeleteFailureException(ErrorMessage.INVALID_BOARD_CONSTRUCTOR);
+
+        boardRepository.deleteById(boardId);
+    }
+
+    private Board getBoardById(Long boardId) throws BoardNotFoundException {
+       return boardRepository.findById(boardId)
+                .orElseThrow(BoardNotFoundException::new);
     }
 }
