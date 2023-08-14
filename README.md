@@ -45,8 +45,8 @@
 - `URI`: POST localhostL8080/board
 - `REQUEST`:
   - type: JSON
+  - header: Authorization: JWT
   - body:
-    
     ```
     {
         "title": "title",
