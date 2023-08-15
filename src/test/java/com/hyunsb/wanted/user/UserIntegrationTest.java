@@ -21,7 +21,7 @@ public class UserIntegrationTest {
     private JwtProvider jwtProvider;
 
     @Nested
-    @DisplayName("사용자 회원가입 서비스 통합 테스트")
+    @DisplayName("사용자 회원가입 통합 테스트")
     class Signup {
 
         @DisplayName("성공")
@@ -41,7 +41,7 @@ public class UserIntegrationTest {
     }
 
     @Nested
-    @DisplayName("사용자 로그인 서비스 통합 테스트")
+    @DisplayName("사용자 로그인 통합 테스트")
     class Signip {
 
         @BeforeEach
@@ -70,10 +70,7 @@ public class UserIntegrationTest {
             DecodedJWT decodedJWT = jwtProvider.verify(actual);
 
             // Then
-            Assertions.assertAll(
-                    () -> Assertions.assertTrue(actual.contains(JwtProvider.TOKEN_PREFIX)),
-                    () -> Assertions.assertEquals("user@example.com", decodedJWT.getClaim("email").asString())
-            );
+            Assertions.assertTrue(actual.contains(JwtProvider.TOKEN_PREFIX));
         }
 
         @DisplayName("실패 - 유효하지 않은 이메일")

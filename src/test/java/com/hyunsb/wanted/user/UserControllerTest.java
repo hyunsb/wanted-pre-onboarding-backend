@@ -1,6 +1,7 @@
 package com.hyunsb.wanted.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hyunsb.wanted._core.security.JwtAuthenticationFilter;
 import com.hyunsb.wanted._core.security.JwtProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +23,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @WebMvcTest(controllers = UserController.class,
-        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebMvcConfigurer.class)})
+        excludeFilters = {
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = WebMvcConfigurer.class),
+                @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = JwtAuthenticationFilter.class)
+        })
 class UserControllerTest {
 
     private ObjectMapper objectMapper;
