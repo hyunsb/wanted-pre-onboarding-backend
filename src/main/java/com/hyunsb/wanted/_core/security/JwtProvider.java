@@ -15,7 +15,6 @@ import javax.annotation.PostConstruct;
 import java.util.Date;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class JwtProvider {
 
@@ -33,7 +32,7 @@ public class JwtProvider {
         key = environment.getProperty("JWT_SECRET_KEY");
     }
 
-    public static String create(User user) {
+    public String create(User user) {
         String jwt = JWT.create()
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
@@ -45,7 +44,7 @@ public class JwtProvider {
         return TOKEN_PREFIX + jwt;
     }
 
-    public static DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
+    public DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
         log.info("JWT verify: " + jwt);
         String origin = getOriginalJWT(jwt);
         return JWT.require(Algorithm.HMAC512(key))

@@ -7,12 +7,12 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.hyunsb.wanted._core.error.ErrorMessage;
 import com.hyunsb.wanted._core.util.FilterResponse;
 import com.hyunsb.wanted.user.User;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +26,11 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
+    private final JwtProvider jwtProvider;
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
         super(authenticationManager);
+        this.jwtProvider = jwtProvider;
     }
 
     @Override
@@ -42,7 +45,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         }
 
         try {
-            DecodedJWT decodedJWT = JwtProvider.verify(token);
+            DecodedJWT decodedJWT = jwtProvider.verify(token);
             Long userId = getUserIdFromToken(decodedJWT);
             String role = decodedJWT.getClaim("role").asString();
 
