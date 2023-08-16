@@ -6,6 +6,12 @@
 > **개발 환경** : Java11 + Spring Boot 2.7.14 + MySQL 8.0
 
 
+## 실행방법
+```
+$ ./gradlew clean build
+$ docker-compose up -d
+```
+
 ## API 명세
 
 ### 🔷 회원가입
